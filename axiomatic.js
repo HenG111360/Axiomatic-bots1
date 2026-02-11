@@ -76,12 +76,7 @@ for (const folder of buttonFolder) {
 const { DisTube } = require("distube");
 const { setInterval } = require('node:timers');
 
-client.distube = new DisTube(client, {
-    leaveOnStop: true,
-    leaveOnFinish: true,
-    leaveOnEmpty: true,
-    emptyCooldown: 30
-});
+client.distube = new DisTube(client);
 
 musicevent({ client: client })
 botevent({ client: client, commands: commands, buttons: buttons })
