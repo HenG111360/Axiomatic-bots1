@@ -3,11 +3,10 @@
     "@discordjs/node-pre-gyp": "^0.4.5",
     "@discordjs/opus": "^0.9.0",
     "@discordjs/voice": "^0.16.0",
-    "@distube/spotify": "^1.5.1",
-    "@distube/ytdl-core": "^4.11.11",
+    "@distube/ytdl-core": "^4.13.7",
     "@napi-rs/canvas": "^0.1.41",
-    "discord.js": "^14.11.0",
-    "distube": "^4.0.4",
+    "discord.js": "^14.18.0",
+    "distube": "^5.0.2",
     "dotenv": "^16.1.4",
     "ffmpeg-static": "^4.4.1",
     "libsodium-wrappers": "^0.7.11",
@@ -18,7 +17,7 @@
     "nodemon": "^1.14.9",
     "opusscript": "^0.0.8",
     "rss-parser": "^3.13.0",
-    "undici": "^6.0.0",
+    "undici": "^6.21.1",
     "ytsr": "^3.8.2"
   },
   "engines": {
