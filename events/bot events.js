@@ -1,6 +1,6 @@
 const { MessageType, EmbedBuilder, codeBlock, time, Events, Collection, AttachmentBuilder } = require('discord.js');
 const register = require('../helpers/register');
-const { token } = require("../config.json")
+const token = process.env.TOKEN;
 const Canvas = require('@napi-rs/canvas');
 const { request } = require('undici');
 const fs = require('fs');
