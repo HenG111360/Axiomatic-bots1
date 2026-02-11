@@ -23,14 +23,14 @@ const rest = new REST().setToken(token);
 
 (async () => {
     try {
-        console.log(`🚀 Registering ${commands.length} commands...`);
+        console.log(`🚀 Регистрирую ${commands.length} команд...`);
 
         const data = await rest.put(
-            Routes.applicationCommands("1470876464198062090"),
+            Routes.applicationCommands("1470876464198062090"), // ID бота
             { body: commands },
         );
 
-        console.log(`✅ Successfully registered ${data.length} commands!`);
+        console.log(`✅ Успешно зарегистрировано ${data.length} команд!`);
     } catch (error) {
         console.error(error);
     }
