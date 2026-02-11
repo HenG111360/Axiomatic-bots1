@@ -74,13 +74,11 @@ for (const folder of buttonFolder) {
 }
 
 const { DisTube } = require("distube");
-const { SpotifyPlugin } = require("@distube/spotify");
 const { setInterval } = require('node:timers');
 
 client.distube = new DisTube(client, {
     leaveOnEmpty: true,
     leaveOnFinish: true,
-    plugins: [new SpotifyPlugin()],
     emptyCooldown: 30
 });
 
