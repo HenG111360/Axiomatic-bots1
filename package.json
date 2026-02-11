@@ -22,7 +22,7 @@
     "ytsr": "^3.8.2"
   },
   "engines": {
-    "node": ">=16.9"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "start": "node axiomatic.js"
