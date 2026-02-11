@@ -1,5 +1,5 @@
 const { Client, GatewayIntentBits, ActivityType, Collection } = require('discord.js');
-const { token } = require('./config.json');
+const token = process.env.TOKEN;
 const musicevent = require('./events/musicevent')
 const botevent = require("./events/bot events")
 const Connectdb = require("./helpers/database")
