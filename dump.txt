@@ -1,0 +1,40 @@
+kconst EMOJIREGEX = /<?(a)?:(\w{2,32}):(\d{17,19})?>?/;
+        var emojis = message.content.match(EMOJIREGEX);
+        if (emojis) {
+            const text = client.emojis.cache.get(emojis[3])
+            if (!text) {
+                const emojiname = emojis[0]
+                const emojipure = emojiname.replace(/:/g, '')
+
+                const anim = client.emojis.cache.find(emoji => emoji.name === `${emojipure}`)
+                if (!anim) {
+                    return;
+                }
+
+                else {
+                    const web = await message.channel.fetchWebhooks()
+                    const webk = await web.find(wh => wh.name === "Honami")
+                    message.delete()
+                    if (webk) {
+                        return webk.send({
+                            username: `${message.author.username}`, avatarURL: `${message.author.displayAvatarURL()}`,
+                            content: `<a:${anim.name}:${anim.id}>`
+                        })
+                    }
+                    else {
+                        const webk = await message.channel.createWebhook({
+                            name: 'Honami',
+                            avatar: `${client.user.avatarURL()}`,
+                        })
+                        return webk.send({
+                            username: `${message.author.username}`, avatarURL: `${message.author.displayAvatarURL()}`,
+                            content: `<a:${anim.name}:${anim.id}>`
+                        })
+                    }
+                }
+            }
+            else {
+                return;
+
+            }
+        

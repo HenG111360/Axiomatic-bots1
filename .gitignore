@@ -1,0 +1,19 @@
+# Secrets
+config.json
+.env
+*.env
+
+# Dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Discord bot specific
+token.json
+auth.json
