@@ -1,6 +1,6 @@
 # Secrets
 config.json
-.env
+# .env
 *.env
 
 # Dependencies
