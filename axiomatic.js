@@ -77,8 +77,9 @@ const { DisTube } = require("distube");
 const { setInterval } = require('node:timers');
 
 client.distube = new DisTube(client, {
-    leaveOnEmpty: true,
+    leaveOnStop: true,
     leaveOnFinish: true,
+    leaveOnEmpty: true,
     emptyCooldown: 30
 });
 
