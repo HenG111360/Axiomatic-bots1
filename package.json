@@ -18,7 +18,7 @@
     "nodemon": "^1.14.9",
     "opusscript": "^0.0.8",
     "rss-parser": "^3.13.0",
-    "undici": "^5.22.1",
+    "undici": "^6.0.0",
     "ytsr": "^3.8.2"
   },
   "engines": {
