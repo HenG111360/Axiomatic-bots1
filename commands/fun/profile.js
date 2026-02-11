@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, AttachmentBuilder } = require('discord.js');
-const Canvas = require('@napi-rs/canvas');
+const { createCanvas, loadImage } = require('canvas');
 
 // ============================================
 // 👇 ТВОЙ НОВЫЙ ФОН (GIF С ЛУНОЙ)
@@ -35,12 +35,12 @@ module.exports = {
         };
 
         // ========== СОЗДАЁМ КАРТИНКУ ==========
-        const canvas = Canvas.createCanvas(1000, 550);
+        const canvas = createCanvas(1000, 550);
         const ctx = canvas.getContext('2d');
 
         // 1️⃣ ЗАГРУЗКА ФОНА (ТВОЯ ГИФКА)
         try {
-            const background = await Canvas.loadImage(BACKGROUND_URL);
+            const background = await loadImage(BACKGROUND_URL);
             ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
         } catch {
             ctx.fillStyle = '#0a0a0a';
@@ -63,7 +63,7 @@ module.exports = {
 
         // 3️⃣ АВАТАР
         try {
-            const avatar = await Canvas.loadImage(user.displayAvatarURL({ extension: 'png', size: 256 }));
+            const avatar = await loadImage(user.displayAvatarURL({ extension: 'png', size: 256 }));
             ctx.save();
             ctx.beginPath();
             ctx.arc(215, 140, 90, 0, Math.PI * 2);
