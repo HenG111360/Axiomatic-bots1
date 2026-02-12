@@ -9,18 +9,83 @@ const User = require('../schema/User');
 const botevents = ({ client, commands }) => {
 
     client.on(Events.InteractionCreate, async interaction => {
+        // ---------- КНОПКИ ----------
         if (interaction.isButton()) {
             const button = interaction.client.buttons.get(interaction.customId);
             if (button) await button.execute(interaction);
             return;
         }
 
+        // ---------- МОДАЛЬНОЕ ОКНО (ПОКУПКА РОЛИ) ----------
+        if (interaction.isModalSubmit() && interaction.customId === 'buyrole_modal') {
+            await interaction.deferReply({ ephemeral: true });
+
+            const roleName = interaction.fields.getTextInputValue('role_name');
+            let roleColor = interaction.fields.getTextInputValue('role_color');
+            
+            // Валидация HEX-цвета
+            if (!roleColor.startsWith('#')) roleColor = '#' + roleColor;
+            if (!/^#[0-9A-F]{6}$/i.test(roleColor)) {
+                return interaction.editReply({ content: '❌ Неверный формат цвета. Используй HEX (например, #FF0000 или FF0000).' });
+            }
+
+            const userData = await User.findOne({ userId: interaction.user.id });
+            if (!userData || userData.coins < 10000) {
+                return interaction.editReply({ content: '❌ Недостаточно монет или профиль не найден.' });
+            }
+
+            try {
+                // Создаём роль
+                const role = await interaction.guild.roles.create({
+                    name: roleName,
+                    color: roleColor,
+                    reason: `Кастомная роль для ${interaction.user.tag}`,
+                    permissions: []
+                });
+
+                // Выдаём роль
+                await interaction.member.roles.add(role);
+
+                // Списываем монеты и сохраняем в БД
+                userData.coins -= 10000;
+                if (!userData.customRoles) userData.customRoles = [];
+                userData.customRoles.push({
+                    roleId: role.id,
+                    name: roleName,
+                    color: roleColor,
+                    price: 10000,
+                    createdAt: Date.now()
+                });
+                await userData.save();
+
+                const embed = new EmbedBuilder()
+                    .setColor(roleColor)
+                    .setTitle('✅ Роль успешно создана!')
+                    .setDescription(`Ты приобрёл кастомную роль **${roleName}** за 10000 💰`)
+                    .addFields(
+                        { name: 'Цвет', value: roleColor, inline: true },
+                        { name: 'ID роли', value: role.id, inline: true },
+                        { name: 'Новый баланс', value: `${userData.coins} 💰`, inline: true }
+                    )
+                    .setTimestamp();
+
+                await interaction.editReply({ embeds: [embed] });
+
+            } catch (error) {
+                console.error(error);
+                await interaction.editReply({ content: '❌ Ошибка при создании роли. Убедись, что у бота есть права "Управлять ролями".' });
+            }
+            return;
+        }
+
+        // ---------- SLASH-КОМАНДЫ ----------
         const command = interaction.client.commands.get(interaction.commandName);
         if (!command) {
             console.error(`No command matching ${interaction.commandName} was found.`);
             return;
         }
 
+        // ---------- КУЛДАУНЫ ----------
         const { cooldowns } = client;
         if (!cooldowns.has(command.data.name)) {
             cooldowns.set(command.data.name, new Collection());
@@ -44,6 +109,7 @@ const botevents = ({ client, commands }) => {
         timestamps.set(interaction.user.id, now);
         setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
 
+        // ---------- ВЫПОЛНЕНИЕ КОМАНДЫ ----------
         try {
             await command.execute(interaction);
         } catch (error) {
@@ -98,16 +164,12 @@ const botevents = ({ client, commands }) => {
         user.messages += 1;
         user.xp += 0.5; // 0.5 XP за сообщение
 
-        // Пересчёт уровня: level = floor(sqrt(xp / 100)) + 1
         const newLevel = Math.floor(Math.sqrt(user.xp / 100)) + 1;
-        if (newLevel > user.level) {
-            user.level = newLevel;
-            // можно отправить уведомление о повышении уровня
-        }
+        if (newLevel > user.level) user.level = newLevel;
 
         await user.save();
 
-        // ===== ОСТАЛЬНАЯ ЛОГИКА (НЕ ТРОГАЕМ) =====
+        // ОСТАЛЬНАЯ ЛОГИКА
         if (message.content.includes("@here") || message.content.includes("@everyone") || message.type == MessageType.Reply) {
             return false;
         }
@@ -128,24 +190,19 @@ const botevents = ({ client, commands }) => {
         if (!member || member.user.bot) return;
         const userId = member.id;
 
-        // Зашёл в голосовой
         if (!oldState.channel && newState.channel) {
             voiceSessions[userId] = Date.now();
         }
 
-        // Вышел из голосового
         if (oldState.channel && !newState.channel) {
             if (voiceSessions[userId]) {
                 const seconds = Math.floor((Date.now() - voiceSessions[userId]) / 1000);
                 delete voiceSessions[userId];
 
                 let user = await User.findOne({ userId });
-                if (!user) {
-                    user = new User({ userId });
-                }
+                if (!user) user = new User({ userId });
 
                 user.voiceTime += seconds;
-                // 0.02 XP за секунду (с округлением до сотых)
                 user.xp += Math.floor(seconds * 0.02 * 100) / 100;
 
                 const newLevel = Math.floor(Math.sqrt(user.xp / 100)) + 1;
@@ -154,8 +211,6 @@ const botevents = ({ client, commands }) => {
                 await user.save();
             }
         }
-
-        // Перемещение между каналами — не сбрасываем сессию
     });
 };
 
