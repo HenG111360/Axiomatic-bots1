@@ -7,12 +7,14 @@ const userSchema = new mongoose.Schema({
     xp: { type: Number, default: 0 },
     level: { type: Number, default: 1 },
     coins: { type: Number, default: 500 },
-    diamonds: { type: Number, default: 0 },   // ← ДОБАВЛЕНО
+    diamonds: { type: Number, default: 0 },
     lastDaily: { type: Date, default: null },
     marriedTo: { type: String, default: null },
     marryDate: { type: Date, default: null },
     clan: { type: String, default: 'Нет' },
-    inventory: { type: Array, default: [] }
+    inventory: { type: Array, default: [] },
+    // 🆕 Кастомные роли, купленные пользователем
+    customRoles: { type: Array, default: [] }
 });
 
 module.exports = mongoose.model('User', userSchema);
