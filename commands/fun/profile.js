@@ -50,32 +50,28 @@ module.exports = {
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
-        // 2️⃣ ТЁМНАЯ ПРОЗРАЧНАЯ НАКЛАДКА (как в Python)
+        // 2️⃣ ТЁМНАЯ ПРОЗРАЧНАЯ НАКЛАДКА
         ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // ========== СТЕКЛЯННЫЕ ПАНЕЛИ ==========
-        // Левая панель (50,100) размер 300x400
         ctx.fillStyle = 'rgba(20, 20, 20, 0.7)';
         ctx.shadowBlur = 15;
         ctx.shadowColor = 'rgba(0,0,0,0.6)';
-        ctx.beginPath();
-        ctx.roundRect(50, 100, 300, 400, 20);
-        ctx.fill();
-        // Правая панель (850,100) размер 300x400
-        ctx.beginPath();
-        ctx.roundRect(850, 100, 300, 400, 20);
-        ctx.fill();
-        // Центральная панель (425,50) размер 350x500
-        ctx.beginPath();
-        ctx.roundRect(425, 50, 350, 500, 20);
-        ctx.fill();
-        ctx.shadowBlur = 0;
 
-        // ========== ШРИФТЫ ==========
-        ctx.font = 'bold 60px "Arial", sans-serif';
-        ctx.font = '40px "Arial", sans-serif';
-        ctx.font = '30px "Arial", sans-serif';
+        // Левая панель
+        roundRect(ctx, 50, 100, 300, 400, 20);
+        ctx.fill();
+
+        // Правая панель
+        roundRect(ctx, 850, 100, 300, 400, 20);
+        ctx.fill();
+
+        // Центральная панель
+        roundRect(ctx, 425, 50, 350, 500, 20);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
 
         // ========== ЛЕВАЯ ПАНЕЛЬ ==========
         ctx.font = '30px "Arial", sans-serif';
@@ -90,7 +86,7 @@ module.exports = {
         ctx.fillText('В топе', 100, 280);
         ctx.font = '40px "Arial", sans-serif';
         ctx.fillStyle = '#ffd700';
-        ctx.fillText('1000+', 100, 340); // Заглушка, можешь заменить на реальный топ
+        ctx.fillText('1000+', 100, 340);
 
         ctx.font = '30px "Arial", sans-serif';
         ctx.fillStyle = '#ffffff';
@@ -177,8 +173,7 @@ module.exports = {
         ctx.fillStyle = 'rgba(40,40,50,0.9)';
         ctx.shadowBlur = 8;
         ctx.shadowColor = 'rgba(0,0,0,0.6)';
-        ctx.beginPath();
-        ctx.roundRect(barX, barY, barWidth, barHeight, 12);
+        roundRect(ctx, barX, barY, barWidth, barHeight, 12);
         ctx.fill();
 
         // Заполнение
@@ -186,8 +181,7 @@ module.exports = {
         ctx.shadowBlur = 12;
         ctx.shadowColor = '#ff4d4d';
         const fillWidth = (progressPercent / 100) * barWidth;
-        ctx.beginPath();
-        ctx.roundRect(barX, barY, fillWidth, barHeight, 12);
+        roundRect(ctx, barX, barY, fillWidth, barHeight, 12);
         ctx.fill();
         ctx.shadowBlur = 0;
 
@@ -203,18 +197,19 @@ module.exports = {
 };
 
 // ========== ФУНКЦИЯ ДЛЯ СКРУГЛЁННЫХ УГЛОВ ==========
-Canvas.prototype.roundRect = function (x, y, w, h, r) {
+function roundRect(ctx, x, y, w, h, r) {
     if (w < 2 * r) r = w / 2;
     if (h < 2 * r) r = h / 2;
-    this.moveTo(x + r, y);
-    this.lineTo(x + w - r, y);
-    this.quadraticCurveTo(x + w, y, x + w, y + r);
-    this.lineTo(x + w, y + h - r);
-    this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    this.lineTo(x + r, y + h);
-    this.quadraticCurveTo(x, y + h, x, y + h - r);
-    this.lineTo(x, y + r);
-    this.quadraticCurveTo(x, y, x + r, y);
-    this.closePath();
-    return this;
-};
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    return ctx;
+}
