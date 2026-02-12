@@ -4,26 +4,24 @@ const token = process.env.TOKEN;
 const { request } = require('undici');
 const fs = require('fs');
 const path = require('node:path');
+const User = require('../schema/User'); // ← ДОБАВЛЕНО
 
 const botevents = ({ client, commands }) => {
 
     client.on(Events.InteractionCreate, async interaction => {
-
         if (interaction.isButton()) {
-            const button = interaction.client.buttons.get(interaction.customId)
+            const button = interaction.client.buttons.get(interaction.customId);
             await button.execute(interaction);
-            return
+            return;
         }
 
         const command = interaction.client.commands.get(interaction.commandName);
-
         if (!command) {
             console.error(`No command matching ${interaction.commandName} was found.`);
             return;
         }
 
         const { cooldowns } = client;
-
         if (!cooldowns.has(command.data.name)) {
             cooldowns.set(command.data.name, new Collection());
         }
@@ -35,10 +33,9 @@ const botevents = ({ client, commands }) => {
 
         if (timestamps.has(interaction.user.id)) {
             const expirationTime = timestamps.get(interaction.user.id) + cooldownAmount;
-
             if (now < expirationTime) {
                 const expiredTimestamp = Math.round(expirationTime / 1000);
-                const exampleEmbed = new EmbedBuilder().setDescription(`**Please wait, you are on a cooldown till <t:${expiredTimestamp}:T>.**`)
+                const exampleEmbed = new EmbedBuilder().setDescription(`**Please wait, you are on a cooldown till <t:${expiredTimestamp}:T>.**`);
                 return interaction.reply({ embeds: [exampleEmbed] });
             }
         }
@@ -52,18 +49,21 @@ const botevents = ({ client, commands }) => {
             const date = new Date();
             const timeString = time(date);
             const channel = client.channels.cache.get("1015498504992460840");
-            const code = codeBlock('js', `${error}`)
-            const exampleEmbed = new EmbedBuilder().setTitle("Reporting an error").setDescription(
-                `${code}`
-            ).setColor('Red').setAuthor({
-                name: `${client.user.username}`, iconURL: client.user.displayAvatarURL()
-            }).addFields({ name: "Command used", value: `</${interaction.commandName}:${interaction.commandId}>`, inline: true }, { name: "Channel", value: `${interaction.channel.name}`, inline: true }, { name: "Time", value: `${timeString}`, inline: true }).setFooter({
-                text: `Used By ${interaction.user.username}`,
-                iconURL: interaction.user.displayAvatarURL()
-            })
-            await interaction.reply("Oh no I am facing some erros reporting problem to our developers")
-            channel.send({ embeds: [exampleEmbed] })
-            console.log(error)
+            const code = codeBlock('js', `${error}`);
+            const exampleEmbed = new EmbedBuilder()
+                .setTitle("Reporting an error")
+                .setDescription(`${code}`)
+                .setColor('Red')
+                .setAuthor({ name: `${client.user.username}`, iconURL: client.user.displayAvatarURL() })
+                .addFields(
+                    { name: "Command used", value: `</${interaction.commandName}:${interaction.commandId}>`, inline: true },
+                    { name: "Channel", value: `${interaction.channel.name}`, inline: true },
+                    { name: "Time", value: `${timeString}`, inline: true }
+                )
+                .setFooter({ text: `Used By ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
+            await interaction.reply("Oh no I am facing some erros reporting problem to our developers");
+            channel.send({ embeds: [exampleEmbed] });
+            console.log(error);
         }
     });
 
@@ -71,24 +71,72 @@ const botevents = ({ client, commands }) => {
         return console.log(`Ready! Logged in as ${c.user.tag}`);
     });
 
+    // ==================== XP ЗА СООБЩЕНИЯ ====================
     client.on("messageCreate", async (message) => {
-        if (message.author.bot) {
-            return;
+        if (message.author.bot) return;
+
+        let user = await User.findOne({ userId: message.author.id });
+        if (!user) user = new User({ userId: message.author.id });
+
+        user.messages += 1;
+        user.xp += 0.5; // 0.5 XP за сообщение
+
+        // Пересчёт уровня: level = floor(sqrt(xp / 100)) + 1
+        const newLevel = Math.floor(Math.sqrt(user.xp / 100)) + 1;
+        if (newLevel > user.level) {
+            user.level = newLevel;
         }
 
-        if (message.content.includes("@here") || message.content.includes("@everyone") || message.type == MessageType.Reply) { 
-            return false 
+        await user.save();
+
+        // ===== СТАРАЯ ЛОГИКА (НЕ ТРОГАЕМ) =====
+        if (message.content.includes("@here") || message.content.includes("@everyone") || message.type == MessageType.Reply) {
+            return false;
         }
 
         if (message.content.includes("Honami sync")) {
             if (message.author.id === "979661273820168193") {
-                register({ commands: commands, token: token, message: message })
+                register({ commands: commands, token: token, message: message });
                 return;
             } else {
                 return;
             }
         }
     });
-}
 
-module.exports = botevents
+    // ==================== XP ЗА ВОЙС ====================
+    const voiceSessions = {};
+
+    client.on("voiceStateUpdate", async (oldState, newState) => {
+        const member = newState.member;
+        if (!member) return;
+        const userId = member.id;
+
+        // Зашёл в голосовой
+        if (!oldState.channel && newState.channel) {
+            voiceSessions[userId] = Date.now();
+        }
+
+        // Вышел из голосового
+        if (oldState.channel && !newState.channel) {
+            if (voiceSessions[userId]) {
+                const seconds = Math.floor((Date.now() - voiceSessions[userId]) / 1000);
+                delete voiceSessions[userId];
+
+                let user = await User.findOne({ userId });
+                if (!user) user = new User({ userId });
+
+                user.voiceTime += seconds;
+                // 0.02 XP за секунду
+                user.xp += Math.floor(seconds * 0.02 * 100) / 100;
+
+                const newLevel = Math.floor(Math.sqrt(user.xp / 100)) + 1;
+                if (newLevel > user.level) user.level = newLevel;
+
+                await user.save();
+            }
+        }
+    });
+};
+
+module.exports = botevents;
