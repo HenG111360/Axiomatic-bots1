@@ -4,7 +4,7 @@ const {
 } = require('discord.js');
 const { createCanvas, loadImage } = require('@napi-rs/canvas');
 const path = require('path');
-const User = require('../../models/User');
+const User = require('../../schema/User');
 
 module.exports = {
   data: new SlashCommandBuilder()
